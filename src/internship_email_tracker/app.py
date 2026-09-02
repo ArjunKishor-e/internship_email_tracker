@@ -1,38 +1,10 @@
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
 
-app = FastAPI(title="Internship Email Tracker")
+app = FastAPI()
 
+templates = Jinja2Templates(directory="src/internship_email_tracker/templates")
 
-@app.get("/", response_class=HTMLResponse)
-def home():
-    return """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Internship Email Tracker</title>
-    </head>
-
-    <body>
-        <h1>Internship Email Tracker</h1>
-
-        <h2>Applications</h2>
-        <ul>
-            <li>Applications: 12</li>
-            <li>Assessments: 5</li>
-            <li>Interviews: 3</li>
-            <li>Offers: 1</li>
-        </ul>
-
-        <h2>Recent Internship Emails</h2>
-
-        <ul>
-            <li>Amazon - Assessment - Online assessment invitation - Sep 2</li>
-            <li>Microsoft - Interview - Interview invitation - Sep 1</li>
-            <li>Google - Rejected - Application update - Aug 29</li>
-            <li>Meta - Applied - Application received - Aug 27</li>
-        </ul>
-
-    </body>
-    </html>
-    """
+@app.get("/")
+def home(request: Request):
+    return templates.TemplateResponse(request, "index.html", {})
