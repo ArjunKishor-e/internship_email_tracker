@@ -18,10 +18,9 @@
     <h2>Recent Internship Emails</h2>
 
     <ul>
-        <li>Amazon - Assessment - Online assessment invitation - Sep 2</li>
-        <li>Microsoft - Interview - Interview invitation - Sep 1</li>
-        <li>Google - Rejected - Application update - Aug 29</li>
-        <li>Meta - Applied - Application received - Aug 27</li>
+        {% for email in emails %}
+        <li>{{ email.company }}, {{ email.subject }}, {{ email.date }}, {{ email.stage }}</li>
+        {% endfor %}
     </ul>
 </body>
 </html>
