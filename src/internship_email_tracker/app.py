@@ -1,0 +1,38 @@
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI(title="Internship Email Tracker")
+
+
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Internship Email Tracker</title>
+    </head>
+
+    <body>
+        <h1>Internship Email Tracker</h1>
+
+        <h2>Applications</h2>
+        <ul>
+            <li>Applications: 12</li>
+            <li>Assessments: 5</li>
+            <li>Interviews: 3</li>
+            <li>Offers: 1</li>
+        </ul>
+
+        <h2>Recent Internship Emails</h2>
+
+        <ul>
+            <li>Amazon - Assessment - Online assessment invitation - Sep 2</li>
+            <li>Microsoft - Interview - Interview invitation - Sep 1</li>
+            <li>Google - Rejected - Application update - Aug 29</li>
+            <li>Meta - Applied - Application received - Aug 27</li>
+        </ul>
+
+    </body>
+    </html>
+    """
