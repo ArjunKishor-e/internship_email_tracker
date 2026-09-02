@@ -7,11 +7,8 @@ def classify_email(subject):
         return "Assessment"
     elif "reject" in subject_lower or "unfortunately" in subject_lower:
         return "Rejected"
+    elif "congratulations" in subject_lower or "pleased" in subject_lower or "delighted" in subject_lower:
+        return "Offered"
     else:
         return "Applied"
     
-if __name__ == "__main__":
-    print(classify_email("Interview invitation"))
-    print(classify_email("Online assessment invitation"))
-    print(classify_email("Unfortunately, we will not be proceeding"))
-    print(classify_email("Application received"))
