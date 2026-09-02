@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from internship_email_tracker.sample_emails import sample_emails
+from internship_email_tracker.classifier import classify_email
 
 app = FastAPI()
 
