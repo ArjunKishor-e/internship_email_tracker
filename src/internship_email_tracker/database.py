@@ -1,6 +1,5 @@
 import sqlite3
-from internship_email_tracker.sample_emails import sample_emails
-from internship_email_tracker.email import Email
+from internship_email_tracker.email_model import Email
 
 def get_connection():
     connection = sqlite3.connect("tracker.db")
@@ -53,11 +52,6 @@ def get_all_emails():
 
 if __name__ == "__main__":
     create_table()
-
-    for email in sample_emails:
-        insert_email(email.company, email.subject, email.date, email.stage)
-
-    print("Sample emails inserted")
 
     emails = get_all_emails()
     for email in emails:
