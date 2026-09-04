@@ -1,9 +1,10 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
-from internship_email_tracker.database import get_all_emails
+from internship_email_tracker.database import get_all_emails, sync_gmail_to_database, create_table
 from internship_email_tracker.classifier import classify_email
 
 app = FastAPI()
+create_table()
 
 templates = Jinja2Templates(directory="src/internship_email_tracker/templates")
 
@@ -17,11 +18,16 @@ def home(request: Request):
     rejected_count = sum(1 for email in emails if email.stage == "Rejected")
     offer_count = sum(1 for email in emails if email.stage == "Offer")
 
-    return templates.TemplateResponse(request, "index.html", {
-        "emails": emails,
-        "applied_count": applied_count,
-        "assessment_count": assessment_count,
-        "interview_count": interview_count,
-        "rejected_count": rejected_count,
-        "offer_count": offer_count,
-    })
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={
+            "request": request,
+            "emails": emails,
+            "applied_count": applied_count,
+            "assessment_count": assessment_count,
+            "interview_count": interview_count,
+            "rejected_count": rejected_count,
+            "offer_count": offer_count,
+        }
+    )
