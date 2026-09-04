@@ -5,6 +5,8 @@ class Email:
         self.date = date
         self.stage = stage
     
+    def __str__(self):
+        return f"Company:{self.company} ,Subject:{self.subject} ,Date:{self.date} ,Stage:{self.stage}"
 
 if __name__ == "__main__":
     email1 = Email("Amazon", "Online assessment invitation", "Sep 2", "Assessment")

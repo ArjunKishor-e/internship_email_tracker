@@ -30,7 +30,7 @@ def get_recent_emails(max_results=10):
             if header["name"] == "From":
                 company = header["value"]
 
-        emails.append({"subject": subject, "date": date, "sender": company})
+        emails.append({"id": message ["id"], "subject": subject, "date": date, "sender": company})
 
     return emails
 

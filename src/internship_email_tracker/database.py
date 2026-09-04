@@ -14,6 +14,7 @@ def create_table():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS emails (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            gmail_id TEXT UNIQUE,
             company TEXT,
             subject TEXT,
             date TEXT,
@@ -24,7 +25,7 @@ def create_table():
     connection.commit()
     connection.close()
 
-def insert_email(company, subject, date, stage = None):
+def insert_email(gmail_id, company, subject, date, stage = None):
     if stage is None:
         stage = classify_email(subject)
     
@@ -32,9 +33,9 @@ def insert_email(company, subject, date, stage = None):
     cursor = connection.cursor()
 
     cursor.execute("""
-        INSERT INTO emails (company, subject, date, stage)
-        VALUES (?, ?, ?, ?)
-    """, (company, subject, date, stage))
+        INSERT OR IGNORE INTO emails (gmail_id, company, subject, date, stage)
+        VALUES (?, ?, ?, ?, ?)
+    """, (gmail_id, company, subject, date, stage))
 
     connection.commit()
     connection.close()
@@ -50,7 +51,7 @@ def get_all_emails():
 
     emails = []
     for row in rows:
-        email = Email(row[1], row[2], row[3], row[4])
+        email = Email(row[2], row[3], row[4], row[5])
         emails.append(email)
 
     return emails
@@ -58,7 +59,7 @@ def sync_gmail_to_database():
     emails = get_recent_emails(10)
 
     for email in emails:
-        insert_email(email["sender"], email["subject"], email["date"])
+        insert_email(email["id"], email["sender"], email["subject"], email["date"])
 
     print("Gmail sync complete")
 
