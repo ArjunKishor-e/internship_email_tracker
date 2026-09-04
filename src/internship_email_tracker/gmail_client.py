@@ -1,5 +1,6 @@
 from googleapiclient.discovery import build
 from internship_email_tracker.gmail_auth import get_gmail_credentials
+from email.utils import parseaddr
 
 def get_recent_emails(max_results=10):
     creds = get_gmail_credentials()
@@ -28,9 +29,14 @@ def get_recent_emails(max_results=10):
             if header["name"] == "Date":
                 date = header["value"]
             if header["name"] == "From":
-                company = header["value"]
+                raw_sender = header["value"]
+                name, email_address = parseaddr(raw_sender)
+                if name:
+                    company=name
+                else:
+                    company=email_address
 
-        emails.append({"id": message ["id"], "subject": subject, "date": date, "sender": company})
+        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company})
 
     return emails
 

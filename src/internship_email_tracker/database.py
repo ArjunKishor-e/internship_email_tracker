@@ -59,7 +59,7 @@ def sync_gmail_to_database():
     emails = get_recent_emails(10)
 
     for email in emails:
-        insert_email(email["id"], email["sender"], email["subject"], email["date"])
+        insert_email(email["id"], email["company"], email["subject"], email["date"])
 
     print("Gmail sync complete")
 
