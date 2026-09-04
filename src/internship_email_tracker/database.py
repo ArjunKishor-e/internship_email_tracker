@@ -1,5 +1,7 @@
 import sqlite3
 from internship_email_tracker.email_model import Email
+from internship_email_tracker.classifier import classify_email
+from internship_email_tracker.gmail_client import get_recent_emails
 
 def get_connection():
     connection = sqlite3.connect("tracker.db")
@@ -22,7 +24,10 @@ def create_table():
     connection.commit()
     connection.close()
 
-def insert_email(company, subject, date, stage):
+def insert_email(company, subject, date, stage = None):
+    if stage is None:
+        stage = classify_email(subject)
+    
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -49,9 +54,18 @@ def get_all_emails():
         emails.append(email)
 
     return emails
+def sync_gmail_to_database():
+    emails = get_recent_emails(10)
+
+    for email in emails:
+        insert_email(email["sender"], email["subject"], email["date"])
+
+    print("Gmail sync complete")
+
 
 if __name__ == "__main__":
     create_table()
+    sync_gmail_to_database()
 
     emails = get_all_emails()
     for email in emails:
