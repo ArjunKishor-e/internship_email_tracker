@@ -1,7 +1,9 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from internship_email_tracker.database import get_all_emails, sync_gmail_to_database, create_table
 from internship_email_tracker.classifier import classify_email
+
 
 app = FastAPI()
 create_table()
@@ -31,3 +33,7 @@ def home(request: Request):
             "offer_count": offer_count,
         }
     )
+@app.get("/sync")
+def sync(request: Request):
+    sync_gmail_to_database()
+    return RedirectResponse(url="/", status_code=303)
