@@ -37,7 +37,7 @@ def get_recent_emails(max_results=10):
         headers = msg["payload"]["headers"]
 
         body = get_email_body(msg["payload"])
-        print(body)
+        
 
         subject = ""
         date = ""
