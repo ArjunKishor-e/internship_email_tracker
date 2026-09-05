@@ -3,12 +3,12 @@ from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
 from internship_email_tracker.gmail_client import get_recent_emails
 
-def get_connection():
-    connection = sqlite3.connect("tracker.db")
+def get_connection(db_name ="tracker.db"):
+    connection = sqlite3.connect(db_name)
     return connection
 
-def create_table():
-    connection = get_connection()
+def create_table(db_name ="tracker.db"):
+    connection = get_connection(db_name)
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -25,11 +25,11 @@ def create_table():
     connection.commit()
     connection.close()
 
-def insert_email(gmail_id, company, subject, date, body, stage = None):
+def insert_email(gmail_id, company, subject, date, body, stage = None, db_name ="tracker.db"):
     if stage is None:
         stage = classify_email(subject,body)
     
-    connection = get_connection()
+    connection = get_connection(db_name)
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -40,8 +40,8 @@ def insert_email(gmail_id, company, subject, date, body, stage = None):
     connection.commit()
     connection.close()
 
-def get_all_emails():
-    connection = get_connection()
+def get_all_emails(db_name ="tracker.db"):
+    connection = get_connection(db_name)
     cursor = connection.cursor()
 
     cursor.execute("SELECT * FROM emails")

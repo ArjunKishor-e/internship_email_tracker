@@ -23,3 +23,7 @@ def test_unrelated_email_returns_other():
 def test_keyword_found_only_in_body():
     result = classify_email("Update regarding your application", "We would like to schedule an interview with you.")
     assert result == "Interview"
+
+def test_empty_subject_and_body_returns_other():
+    result = classify_email("", "")
+    assert result == "Other"
