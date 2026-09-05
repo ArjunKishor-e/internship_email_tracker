@@ -1,60 +1,60 @@
-import sqlite3
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
+
+from internship_email_tracker.models import Base, EmailRecord
 from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
 from internship_email_tracker.gmail_client import get_recent_emails
 
-def get_connection(db_name ="tracker.db"):
-    connection = sqlite3.connect(db_name)
-    return connection
 
-def create_table(db_name ="tracker.db"):
-    connection = get_connection(db_name)
-    cursor = connection.cursor()
+def get_engine(db_name="tracker.db"):
+    return create_engine(f"sqlite:///{db_name}")
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS emails (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            gmail_id TEXT UNIQUE,
-            company TEXT,
-            subject TEXT,
-            date TEXT,
-            stage TEXT
-        )
-    """)
 
-    connection.commit()
-    connection.close()
+def create_table(db_name="tracker.db"):
+    engine = get_engine(db_name)
+    Base.metadata.create_all(engine)
+    engine.dispose()
 
-def insert_email(gmail_id, company, subject, date, body, stage = None, db_name ="tracker.db"):
+
+def insert_email(gmail_id, company, subject, date, body, stage=None, db_name="tracker.db"):
     if stage is None:
-        stage = classify_email(subject,body)
-    
-    connection = get_connection(db_name)
-    cursor = connection.cursor()
+        stage = classify_email(subject, body)
 
-    cursor.execute("""
-        INSERT OR IGNORE INTO emails (gmail_id, company, subject, date, stage)
-        VALUES (?, ?, ?, ?, ?)
-    """, (gmail_id, company, subject, date, stage))
+    engine = get_engine(db_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        record = EmailRecord(
+            gmail_id=gmail_id,
+            company=company,
+            subject=subject,
+            date=date,
+            stage=stage,
+        )
+        session.add(record)
+        session.commit()
+    except IntegrityError:
+        session.rollback()  # mimics old INSERT OR IGNORE behaviour
+    finally:
+        session.close()
+        engine.dispose()
 
-    connection.commit()
-    connection.close()
 
-def get_all_emails(db_name ="tracker.db"):
-    connection = get_connection(db_name)
-    cursor = connection.cursor()
+def get_all_emails(db_name="tracker.db"):
+    engine = get_engine(db_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-    cursor.execute("SELECT * FROM emails")
-    rows = cursor.fetchall()
+    records = session.query(EmailRecord).all()
 
-    connection.close()
+    session.close()
+    engine.dispose()
 
-    emails = []
-    for row in rows:
-        email = Email(row[2], row[3], row[4], row[5])
-        emails.append(email)
+    return [Email(r.company, r.subject, r.date, r.stage) for r in records]
 
-    return emails
+
 def sync_gmail_to_database():
     emails = get_recent_emails(10)
 
