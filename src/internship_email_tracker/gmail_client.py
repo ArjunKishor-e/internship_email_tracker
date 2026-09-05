@@ -1,6 +1,22 @@
 from googleapiclient.discovery import build
 from internship_email_tracker.gmail_auth import get_gmail_credentials
 from email.utils import parseaddr
+import base64
+
+def get_email_body(payload):
+    if "parts" in payload:
+        for part in payload["parts"]:
+            if part["mimeType"] == "text/plain":
+                data = part["body"].get("data")
+                if data:
+                    return base64.urlsafe_b64decode(data).decode("utf-8")
+
+    if payload.get("mimeType") == "text/plain":
+        data = payload["body"].get("data")
+        if data:
+            return base64.urlsafe_b64decode(data).decode("utf-8")
+
+    return ""
 
 def get_recent_emails(max_results=10):
     creds = get_gmail_credentials()
@@ -19,6 +35,10 @@ def get_recent_emails(max_results=10):
         ).execute()
 
         headers = msg["payload"]["headers"]
+
+        body = get_email_body(msg["payload"])
+        print(body)
+
         subject = ""
         date = ""
         company = ""
@@ -36,7 +56,7 @@ def get_recent_emails(max_results=10):
                 else:
                     company=email_address
 
-        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company})
+        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company, "body":body})
 
     return emails
 

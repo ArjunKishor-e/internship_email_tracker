@@ -25,9 +25,9 @@ def create_table():
     connection.commit()
     connection.close()
 
-def insert_email(gmail_id, company, subject, date, stage = None):
+def insert_email(gmail_id, company, subject, date, body, stage = None):
     if stage is None:
-        stage = classify_email(subject)
+        stage = classify_email(subject,body)
     
     connection = get_connection()
     cursor = connection.cursor()
@@ -59,7 +59,7 @@ def sync_gmail_to_database():
     emails = get_recent_emails(10)
 
     for email in emails:
-        insert_email(email["id"], email["company"], email["subject"], email["date"])
+        insert_email(email["id"], email["company"], email["subject"], email["date"], email["body"])
 
     print("Gmail sync complete")
 
