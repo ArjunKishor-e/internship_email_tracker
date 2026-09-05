@@ -18,7 +18,8 @@ def home(request: Request):
     assessment_count = sum(1 for email in emails if email.stage == "Assessment")
     interview_count = sum(1 for email in emails if email.stage == "Interview")
     rejected_count = sum(1 for email in emails if email.stage == "Rejected")
-    offer_count = sum(1 for email in emails if email.stage == "Offer")
+    offer_count = sum(1 for email in emails if email.stage == "Offered")
+    other_count = sum(1 for email in emails if email.stage == "Other")
 
     return templates.TemplateResponse(
         request=request,
@@ -31,6 +32,7 @@ def home(request: Request):
             "interview_count": interview_count,
             "rejected_count": rejected_count,
             "offer_count": offer_count,
+            "other_count": other_count,
         }
     )
 @app.get("/sync")
