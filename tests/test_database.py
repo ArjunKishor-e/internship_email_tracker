@@ -20,3 +20,19 @@ def test_insert_and_retrieve_email():
     assert len(emails) == 1
     assert emails[0].company == "Amazon"
     assert emails[0].stage == "Interview"
+
+def test_duplicate_gmail_id_is_ignored():
+    insert_email("gmail123", "Amazon", "Interview invitation", "Sep 2", "", db_name=TEST_DB)
+    insert_email("gmail123", "Amazon", "Interview invitation", "Sep 2", "", db_name=TEST_DB)
+
+    emails = get_all_emails(TEST_DB)
+
+    assert len(emails) == 1
+
+def test_different_gmail_ids_are_both_stored():
+    insert_email("gmail123", "Amazon", "Interview invitation", "Sep 2", "", db_name=TEST_DB)
+    insert_email("gmail456", "Google", "Assessment invitation", "Sep 3", "", db_name=TEST_DB)
+
+    emails = get_all_emails(TEST_DB)
+
+    assert len(emails) == 2
