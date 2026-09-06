@@ -1,4 +1,5 @@
 from googleapiclient.discovery import build
+from googleapiclient.http import BatchHttpRequest
 from internship_email_tracker.gmail_auth import get_gmail_credentials
 from email.utils import parseaddr
 import base64
@@ -18,50 +19,63 @@ def get_email_body(payload):
 
     return ""
 
-def get_recent_emails(max_results=10):
+def get_recent_emails(max_results=10, query="interview OR application OR assessment OR offer OR rejected"):
     creds = get_gmail_credentials()
     service = build("gmail", "v1", credentials=creds)
 
     results = service.users().messages().list(
-        userId="me", maxResults=max_results
+        userId="me", maxResults=max_results, q=query
     ).execute()
 
     messages = results.get("messages", [])
 
-    emails = []
+    fetched_emails = []
+
+    def handle_response(request_id, response, exception):
+        if exception is None:
+            fetched_emails.append(parse_message(response))
+
+    batch = service.new_batch_http_request(callback=handle_response)
     for message in messages:
-        msg = service.users().messages().get(
-            userId="me", id=message["id"]
-        ).execute()
+        batch.add(service.users().messages().get(userId="me", id=message["id"]))
 
-        headers = msg["payload"]["headers"]
+    batch.execute()
 
-        body = get_email_body(msg["payload"])
-        
+    return fetched_emails
 
-        subject = ""
-        date = ""
-        company = ""
-        sender_domain=""
+def parse_message(msg):
+    headers = msg["payload"]["headers"]
+    body = get_email_body(msg["payload"])
 
-        for header in headers:
-            if header["name"] == "Subject":
-                subject = header["value"]
-            if header["name"] == "Date":
-                date = header["value"]
-            if header["name"] == "From":
-                raw_sender = header["value"]
-                name, email_address = parseaddr(raw_sender)
-                if name:
-                    company=name
-                else:
-                    company=email_address
-                if "@" in email_address:
-                    sender_domain=email_address.split("@")[1]
+    subject = ""
+    date = ""
+    company = ""
+    sender_domain = ""
 
-        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company,"body":body,"sender_domain": sender_domain,"thread_id": msg.get("threadId", ""), })
+    for header in headers:
+        if header["name"] == "Subject":
+            subject = header["value"]
+        if header["name"] == "Date":
+            date = header["value"]
+        if header["name"] == "From":
+            raw_sender = header["value"]
+            name, email_address = parseaddr(raw_sender)
+            if name:
+                company = name
+            else:
+                company = email_address
+            if "@" in email_address:
+                sender_domain = email_address.split("@")[1]
 
-    return emails
+    return {
+        "id": msg["id"],
+        "subject": subject,
+        "date": date,
+        "company": company,
+        "body": body,
+        "sender_domain": sender_domain,
+        "thread_id": msg.get("threadId", ""),
+    }
 
 
 if __name__ == "__main__":
