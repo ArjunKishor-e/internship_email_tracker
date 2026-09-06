@@ -88,10 +88,10 @@ class EmailDatabase:
         print("Gmail sync complete")
 
 
-    if __name__ == "__main__":
-        db = EmailDatabase()
-        db.create_table()
-        db.sync_gmail_to_database()
+if __name__ == "__main__":
+    db = EmailDatabase()
+    db.create_table()
+    db.sync_gmail_to_database()
 
-        for email in  db.get_all_emails():
-            print(email)
+    for email in  db.get_all_emails():
+        print(email)
