@@ -18,7 +18,7 @@ class EmailDatabase:
         Base.metadata.create_all(self.engine)   
 
 
-    def insert_email(self, gmail_id, company, subject, date, body, stage=None, db_name="tracker.db"):
+    def insert_email(self, gmail_id, company, subject, date, body, stage=None):
         if stage is None:
             stage = classify_email(subject, body)
 
@@ -79,13 +79,16 @@ class EmailDatabase:
             session.close()
 
 
-    def sync_gmail_to_database(db_name="tracker.db"):
+    def sync_gmail_to_database(self):
         emails = get_recent_emails(10)
 
         for email in emails:
             self.insert_email_with_application(email)
 
         print("Gmail sync complete")
+
+    def close(self):
+        self.engine.dispose()
 
 
 if __name__ == "__main__":
