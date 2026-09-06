@@ -36,7 +36,7 @@ def insert_email(gmail_id, company, subject, date, body, stage=None, db_name="tr
         session.add(record)
         session.commit()
     except IntegrityError:
-        session.rollback()  # mimics old INSERT OR IGNORE behaviour
+        session.rollback() 
     finally:
         session.close()
         engine.dispose()

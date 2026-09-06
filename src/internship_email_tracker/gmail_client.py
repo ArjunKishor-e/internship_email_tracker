@@ -42,6 +42,7 @@ def get_recent_emails(max_results=10):
         subject = ""
         date = ""
         company = ""
+        sender_domain=""
 
         for header in headers:
             if header["name"] == "Subject":
@@ -55,8 +56,10 @@ def get_recent_emails(max_results=10):
                     company=name
                 else:
                     company=email_address
+                if "@" in email_address:
+                    sender_domain=email_address.split("@")[1]
 
-        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company, "body":body})
+        emails.append({"id": message ["id"], "subject": subject, "date": date, "company": company,"body":body,"sender_domain": sender_domain,"thread_id": msg.get("threadId", ""), })
 
     return emails
 
