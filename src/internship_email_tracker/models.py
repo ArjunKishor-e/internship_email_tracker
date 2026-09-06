@@ -1,9 +1,11 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, relationship
-from datetime import datetime
+from datetime import datetime,timezone
 
 Base = declarative_base()
 
+def utc_now():
+    return datetime.now(timezone.utc)
 
 class Application(Base):
     __tablename__ = "applications"
@@ -14,8 +16,8 @@ class Application(Base):
     role_title = Column(String, nullable=True)
     gmail_thread_id = Column(String, unique=True, nullable=True)
     current_stage = Column(String, default="Applied")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
     status_history = relationship("StatusHistory", back_populates="application")
     emails = relationship("EmailRecord", back_populates="application")
@@ -27,7 +29,7 @@ class StatusHistory(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     application_id = Column(Integer, ForeignKey("applications.id"))
     stage = Column(String)
-    changed_at = Column(DateTime, default=datetime.utcnow)
+    changed_at = Column(DateTime, default=utc_now)
     source_email_id = Column(Integer, ForeignKey("emails.id"), nullable=True)
 
     application = relationship("Application", back_populates="status_history")
