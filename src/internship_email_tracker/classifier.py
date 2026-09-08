@@ -27,6 +27,18 @@ def classify_email(subject,body):
         or "unsuccessful" in body_lower
     ):
         return "Rejected"
+    
+    elif (
+        "assessment centre" in subject_lower
+        or "assessment center" in subject_lower
+        or "assessment day" in subject_lower
+        or "final round" in subject_lower
+        or "assessment centre" in body_lower
+        or "assessment center" in body_lower
+        or "assessment day" in body_lower
+        or "final round" in body_lower
+    ):
+        return "AssessmentCentre"
 
     elif (
         "congratulations" in subject_lower

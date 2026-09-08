@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
+from internship_email_tracker.Email_Stage import should_update_stage
 from internship_email_tracker.matcher import match_application
-from internship_email_tracker.models import Base, EmailRecord, Application
+from internship_email_tracker.models import Base, EmailRecord, Application, StatusHistory
 from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
 from internship_email_tracker.gmail_client import get_recent_emails
@@ -72,6 +73,15 @@ class EmailDatabase:
                 stage=stage,
             )
             session.add(record)
+            session.flush()
+
+            if should_update_stage(matched_application.current_stage, stage):
+                matched_application.current_stage = stage
+                session.add(StatusHistory(
+                    application_id=matched_application.id,
+                    stage=stage,
+                    source_email_id=record.id,
+                ))
             session.commit()
         except IntegrityError:
             session.rollback()
