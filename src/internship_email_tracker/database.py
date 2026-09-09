@@ -1,12 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
-from internship_email_tracker.Email_Stage import should_update_stage
+from internship_email_tracker.email_stage import should_update_stage, STAGE_ORDER
 from internship_email_tracker.matcher import match_application
 from internship_email_tracker.models import Base, EmailRecord, Application, StatusHistory
 from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
 from internship_email_tracker.gmail_client import get_recent_emails
+from internship_email_tracker.analytics import conversion_rate, average_days_between_stages, build_application_timelines
 
 class EmailDatabase:
         
@@ -88,7 +89,38 @@ class EmailDatabase:
         finally:
             session.close()
 
+    def get_analytics_summary(self):
+            session = self.Session()
+            applications = session.query(Application).all()
+            status_entries = session.query(StatusHistory).all()
+            session.close()
 
+            total = len(applications)
+
+            summary = {
+            "total_applications": total,
+            "conversion_rates": {},
+            "average_days": {},
+            }
+
+            for stage in STAGE_ORDER:
+                summary["conversion_rates"][stage] = conversion_rate(total, status_entries, stage)
+
+            stage_pairs = list(zip(STAGE_ORDER, STAGE_ORDER[1:]))
+            for from_stage, to_stage in stage_pairs:
+                key = f"{from_stage}_to_{to_stage}"
+                summary["average_days"][key] = average_days_between_stages(status_entries, from_stage, to_stage)
+
+            return summary        
+
+    def get_application_timelines(self):
+        session = self.Session()
+        applications = session.query(Application).all()
+        status_entries = session.query(StatusHistory).all()
+        session.close()
+
+        return build_application_timelines(applications, status_entries)
+    
     def sync_gmail_to_database(self):
         emails = get_recent_emails(10)
 
