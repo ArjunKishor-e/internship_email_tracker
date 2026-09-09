@@ -1,33 +1,21 @@
-def classify_email(subject,body):
-    subject_lower=subject.lower()
-    body_lower= body.lower()
+def classify_email(subject, body):
+    subject_lower = subject.lower()
+    body_lower = body.lower()
 
-    if "interview" in subject_lower or "interview" in body_lower:
+    if (
+        "your interview" in subject_lower
+        or "interview invitation" in subject_lower
+        or "interview scheduled" in subject_lower
+        or "invite you to interview" in subject_lower
+        or "schedule your interview" in subject_lower
+        or "your interview" in body_lower
+        or "interview invitation" in body_lower
+        or "interview scheduled" in body_lower
+        or "invite you to interview" in body_lower
+        or "schedule your interview" in body_lower
+        or "schedule an interview" in body_lower
+    ):
         return "Interview"
-    elif (
-        "assessment" in subject_lower
-        or "online assessment" in subject_lower
-        or "coding test" in subject_lower
-        or "technical test" in subject_lower
-        or "assessment" in body_lower
-        or "online assessment" in body_lower
-        or "coding test" in body_lower
-        or "technical test" in body_lower
-    ):
-        return "Assessment"
-
-    elif (
-        "reject" in subject_lower
-        or "unfortunately" in subject_lower
-        or "not progressed" in subject_lower
-        or "unsuccessful" in subject_lower
-        or "reject" in body_lower
-        or "unfortunately" in body_lower
-        or "not progressed" in body_lower
-        or "unsuccessful" in body_lower
-    ):
-        return "Rejected"
-    
     elif (
         "assessment centre" in subject_lower
         or "assessment center" in subject_lower
@@ -39,21 +27,39 @@ def classify_email(subject,body):
         or "final round" in body_lower
     ):
         return "AssessmentCentre"
-
     elif (
-        "congratulations" in subject_lower
-        or "pleased" in subject_lower
-        or "delighted" in subject_lower
-        or "job offer" in subject_lower
+        "online assessment" in subject_lower
+        or "coding test" in subject_lower
+        or "technical test" in subject_lower
+        or "complete your assessment" in subject_lower
+        or "online assessment" in body_lower
+        or "coding test" in body_lower
+        or "technical test" in body_lower
+        or "complete your assessment" in body_lower
+    ):
+        return "Assessment"
+    elif (
+        "unfortunately" in subject_lower
+        or "not progressed" in subject_lower
+        or "unsuccessful" in subject_lower
+        or "regret to inform" in subject_lower
+        or "unfortunately" in body_lower
+        or "not progressed" in body_lower
+        or "unsuccessful" in body_lower
+        or "regret to inform" in body_lower
+    ):
+        return "Rejected"
+    elif (
+        "job offer" in subject_lower
         or "offer of employment" in subject_lower
-        or "congratulations" in body_lower
-        or "pleased" in body_lower
-        or "delighted" in body_lower
+        or "pleased to offer" in subject_lower
+        or "delighted to offer" in subject_lower
         or "job offer" in body_lower
         or "offer of employment" in body_lower
+        or "pleased to offer" in body_lower
+        or "delighted to offer" in body_lower
     ):
         return "Offered"
-
     elif (
         "application" in subject_lower
         or "application" in body_lower
@@ -69,4 +75,3 @@ def classify_email(subject,body):
         return "Applied"
     else:
         return "Other"
-

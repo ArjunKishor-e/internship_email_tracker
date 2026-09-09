@@ -3,11 +3,20 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from internship_email_tracker.database import EmailDatabase
 from internship_email_tracker.classifier import classify_email
-
+import asyncio
 
 app = FastAPI()
 db = EmailDatabase()
 db.create_table()
+
+async def sync_every_5_minutes():
+    while True:
+        db.sync_gmail_to_database()
+        await asyncio.sleep(300)
+
+@app.on_event("startup")
+async def start_background_sync():
+    asyncio.create_task(sync_every_5_minutes())
 
 templates = Jinja2Templates(directory="src/internship_email_tracker/templates")
 
