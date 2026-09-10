@@ -1,10 +1,8 @@
 from googleapiclient.discovery import build
-from googleapiclient.http import BatchHttpRequest
 from internship_email_tracker.gmail_auth import get_gmail_credentials
 from email.utils import parseaddr
-from collections import Counter
 import base64
-import re
+
 
 GENERIC_EMAIL_DOMAINS = {
     "gmail.com", "outlook.com", "hotmail.com", "yahoo.com",
@@ -12,21 +10,14 @@ GENERIC_EMAIL_DOMAINS = {
 }
 
 def extract_domain_from_body(body):
-    urls = re.findall(r'https?://([^/\s"\'<>]+)', body)
-    candidate_domains = []
-
-    for url in urls:
-        parts = url.split(".")
-        if len(parts) >= 2:
-            root_domain = ".".join(parts[-2:])
-            if root_domain not in GENERIC_EMAIL_DOMAINS:
-                candidate_domains.append(root_domain)
-
-    if not candidate_domains:
-        return None
-
-    most_common_domain, _ = Counter(candidate_domains).most_common(1)[0]
-    return most_common_domain
+    words = body.split()
+    for word in words:
+        if "http" in word and "." in word:
+            cleaned = word.replace("https://", "").replace("http://", "")
+            domain = cleaned.split("/")[0]
+            if domain not in GENERIC_EMAIL_DOMAINS:
+                return domain
+    return None
 
 def get_email_body(payload):
     if "parts" in payload:
@@ -54,16 +45,10 @@ def get_recent_emails(max_results=10, query="interview OR application OR assessm
     messages = results.get("messages", [])
 
     fetched_emails = []
-
-    def handle_response(request_id, response, exception):
-        if exception is None:
-            fetched_emails.append(parse_message(response))
-
-    batch = service.new_batch_http_request(callback=handle_response)
     for message in messages:
-        batch.add(service.users().messages().get(userId="me", id=message["id"]))
+        response = service.users().messages().get(userId="me", id=message["id"]).execute()
+        fetched_emails.append(parse_message(response))
 
-    batch.execute()
 
     return fetched_emails
 

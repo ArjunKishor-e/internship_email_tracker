@@ -4,7 +4,8 @@ from fastapi.responses import RedirectResponse
 from internship_email_tracker.database import EmailDatabase
 from internship_email_tracker.classifier import classify_email
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio
+import threading
+import time
 
 app = FastAPI()
 app.add_middleware(
@@ -16,14 +17,12 @@ app.add_middleware(
 db = EmailDatabase()
 db.create_table()
 
-async def gmail_sync_time():
+def gmail_sync_loop():
     while True:
         db.sync_gmail_to_database()
-        await asyncio.sleep(86400)
+        time.sleep(86400)
 
-@app.on_event("startup")
-async def start_background_sync():
-    asyncio.create_task(gmail_sync_time())
+threading.Thread(target=gmail_sync_loop, daemon=True).start()
 
 templates = Jinja2Templates(directory="src/internship_email_tracker/templates")
 

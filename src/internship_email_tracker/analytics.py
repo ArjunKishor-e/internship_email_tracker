@@ -23,40 +23,15 @@ def conversion_rate(total_applications, status_entries, stage):
     return len(reached) / total_applications
 
 
-def average_days_between_stages(status_entries, from_stage, to_stage):
-    from_times = {}
-    to_times = {}
-
-    for entry in status_entries:
-        if entry.stage == from_stage:
-            if entry.application_id not in from_times or entry.changed_at < from_times[entry.application_id]:
-                from_times[entry.application_id] = entry.changed_at
-        if entry.stage == to_stage:
-            if entry.application_id not in to_times or entry.changed_at < to_times[entry.application_id]:
-                to_times[entry.application_id] = entry.changed_at
-
-    diffs = []
-    for app_id, from_time in from_times.items():
-        if app_id in to_times:
-            diff_days = (to_times[app_id] - from_time).total_seconds() / 86400
-            if diff_days >= 0:
-                diffs.append(diff_days)
-
-    if not diffs:
-        return None
-
-    return sum(diffs) / len(diffs)
-
 def build_application_timelines(applications, status_entries):
-    entries_by_application = {}
-    for entry in status_entries:
-        entries_by_application.setdefault(entry.application_id, []).append(entry)
-
     timelines = []
 
     for application in applications:
-        app_entries = entries_by_application.get(application.id, [])
-        app_entries.sort(key=lambda e: e.changed_at)
+        app_entries = []
+        for entry in status_entries:
+            if entry.application_id == application.id:
+                app_entries.append(entry)
+
 
         history = []
         previous_time = None
