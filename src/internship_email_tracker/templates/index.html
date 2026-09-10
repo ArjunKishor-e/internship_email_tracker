@@ -1,29 +1,207 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Internship Email Tracker</title>
+    <style>
+        :root {
+            --paper: #FAFAF7;
+            --ink: #232823;
+            --muted: #6B7280;
+            --accent: #2F6F4E;
+            --accent-soft: #E4EFE8;
+            --reject: #B54834;
+            --reject-soft: #F5E6E2;
+            --border: #E4E1D8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 48px 32px;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        .page {
+            max-width: 880px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 28px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .sync-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid var(--accent);
+            padding: 6px 14px;
+            border-radius: 4px;
+        }
+
+        .sync-link:hover {
+            background: var(--accent-soft);
+        }
+
+        .email-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .email-link:hover {
+            text-decoration: underline;
+        }
+
+        .summary {
+            display: flex;
+            gap: 24px;
+            margin: 24px 0 40px;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .stat strong {
+            color: var(--ink);
+            font-size: 18px;
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            padding: 0 0 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        td.company {
+            font-weight: 600;
+            width: 180px;
+        }
+
+        .stage-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        .stage-badge.rejected {
+            background: var(--reject-soft);
+            color: var(--reject);
+        }
+
+        .lifecycle {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+
+        .lifecycle .arrow {
+            color: var(--muted);
+        }
+
+        .lifecycle .days {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .empty {
+            color: var(--muted);
+            padding: 40px 0;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Internship Email Tracker</h1>
-    <a href="/sync">Sync Emails</a>
+    <div class="page">
+        <header>
+            <h1>Internship Tracker</h1>
+            <a class="sync-link" href="/sync">Sync emails</a>
+        </header>
 
-    <h2>Applications</h2>
-    <ul>
-        <li>Applications: {{ applied_count }}</li>
-        <li>Assessments: {{ assessment_count }}</li>
-        <li>Interviews: {{ interview_count }}</li>
-        <li>Rejected: {{ rejected_count }}</li>
-        <li>Offered: {{ offer_count }}</li>
-        <li>Other: {{ other_count }}</li>
-    </ul>
+        <div class="summary">
+            <div class="stat"><strong>{{ applied_count }}</strong>Applied</div>
+            <div class="stat"><strong>{{ assessment_count }}</strong>Assessment</div>
+            <div class="stat"><strong>{{ interview_count }}</strong>Interview</div>
+            <div class="stat"><strong>{{ offer_count }}</strong>Offered</div>
+            <div class="stat"><strong>{{ rejected_count }}</strong>Rejected</div>
+        </div>
 
-    <h2>Recent Internship Emails</h2>
-
-    <ul>
-        {% for email in emails %}
-        <li>{{ email.company }}, {{ email.subject }}, {{ email.date }}, {{ email.stage }}</li>
-        {% endfor %}
-    </ul>
+        {% if applications %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Company</th>
+                    <th>Stage</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td class="company">{{ app.company }}</td>
+                    <td>
+                        <span class="stage-badge {% if app.current_stage == 'Rejected' %}rejected{% endif %}">
+                            {{ app.current_stage }}
+                        </span>
+                    </td>
+                    <td>
+                        <td>
+                            {% if app.gmail_thread_id %}
+                            <a class="email-link" href="https://mail.google.com/mail/u/0/#all/{{ app.gmail_thread_id }}" target="_blank">
+                            View email
+                        </a>
+                         {% endif %}
+                    </td>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty">No applications yet. Sync your emails to get started.</p>
+        {% endif %}
+    </div>
 </body>
 </html>

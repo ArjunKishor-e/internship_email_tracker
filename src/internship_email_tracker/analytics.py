@@ -78,6 +78,7 @@ def build_application_timelines(applications, status_entries):
             "role_title": application.role_title,
             "current_stage": application.current_stage,
             "history": history,
+            "gmail_thread_id": application.gmail_thread_id,
         })
 
     return timelines

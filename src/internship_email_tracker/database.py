@@ -55,8 +55,14 @@ class EmailDatabase:
         try:
             existing_applications = session.query(Application).all()
             matched_application = match_application(email, existing_applications)
+            existing_applications = session.query(Application).all()
+            matched_application = match_application(email, existing_applications)
 
-            if matched_application is None:
+            if matched_application is None and stage == "Other":
+                return
+
+            is_new_application = matched_application is None
+            if is_new_application:
                 matched_application = Application(
                     company=email["company"],
                     gmail_thread_id=email["thread_id"],
@@ -76,7 +82,7 @@ class EmailDatabase:
             session.add(record)
             session.flush()
 
-            if should_update_stage(matched_application.current_stage, stage):
+            if is_new_application or should_update_stage(matched_application.current_stage, stage):
                 matched_application.current_stage = stage
                 session.add(StatusHistory(
                     application_id=matched_application.id,
@@ -119,7 +125,16 @@ class EmailDatabase:
         status_entries = session.query(StatusHistory).all()
         session.close()
 
-        return build_application_timelines(applications, status_entries)
+    def get_application_timelines(self):
+        session = self.Session()
+        applications = session.query(Application).all()
+        status_entries = session.query(StatusHistory).all()
+        session.close()
+
+        timelines = build_application_timelines(applications, status_entries)
+        timelines.sort(key=lambda t: t["company"].lower())
+
+        return timelines
     
     def sync_gmail_to_database(self):
         emails = get_recent_emails(10)
