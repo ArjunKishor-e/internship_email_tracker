@@ -7,7 +7,7 @@ from internship_email_tracker.models import Base, EmailRecord, Application, Stat
 from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
 from internship_email_tracker.gmail_client import get_recent_emails
-from internship_email_tracker.analytics import conversion_rate, average_days_between_stages, build_application_timelines
+from internship_email_tracker.analytics import conversion_rate, build_application_timelines
 
 class EmailDatabase:
         
@@ -106,16 +106,10 @@ class EmailDatabase:
             summary = {
             "total_applications": total,
             "conversion_rates": {},
-            "average_days": {},
             }
 
             for stage in STAGE_ORDER:
                 summary["conversion_rates"][stage] = conversion_rate(total, status_entries, stage)
-
-            stage_pairs = list(zip(STAGE_ORDER, STAGE_ORDER[1:]))
-            for from_stage, to_stage in stage_pairs:
-                key = f"{from_stage}_to_{to_stage}"
-                summary["average_days"][key] = average_days_between_stages(status_entries, from_stage, to_stage)
 
             return summary        
 

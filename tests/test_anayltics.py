@@ -2,7 +2,6 @@ from datetime import datetime, timedelta, timezone
 from internship_email_tracker.analytics import (
     applications_that_reached,
     conversion_rate,
-    average_days_between_stages,
     build_application_timelines,
 )
 
@@ -12,6 +11,7 @@ class FakeStatusEntry:
         self.application_id = application_id
         self.stage = stage
         self.changed_at = changed_at
+
 
 
 def test_applications_that_reached_includes_later_stages():
@@ -46,32 +46,13 @@ def test_conversion_rate_zero_applications():
 
     assert rate == 0.0
 
-def test_average_days_between_stages():
-    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
-    entries = [
-        FakeStatusEntry(1, "Applied", base),
-        FakeStatusEntry(1, "Interview", base + timedelta(days=5)),
-        FakeStatusEntry(2, "Applied", base),
-        FakeStatusEntry(2, "Interview", base + timedelta(days=10)),
-    ]
-
-    avg = average_days_between_stages(entries, "Applied", "Interview")
-
-    assert avg == 7.5
-
-def test_average_days_between_stages_no_qualifying_applications():
-    entries = [FakeStatusEntry(1, "Applied", datetime.now(timezone.utc))]
-
-    avg = average_days_between_stages(entries, "Applied", "Interview")
-
-    assert avg is None
-
 class FakeApplication:
-    def __init__(self, id, company, role_title, current_stage):
+    def __init__(self, id, company, role_title, current_stage,gmail_thread_id=None):
         self.id = id
         self.company = company
         self.role_title = role_title
         self.current_stage = current_stage
+        self.gmail_thread_id = gmail_thread_id
 
 
 def test_build_application_timelines_basic():
