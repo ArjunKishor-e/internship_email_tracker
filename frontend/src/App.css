@@ -1,4 +1,145 @@
-body {
-  margin: 0;
+:root {
+  --paper: #FAFAF7;
+  --ink: #232823;
+  --muted: #6B7280;
+  --accent: #2F6F4E;
+  --accent-soft: #E4EFE8;
+  --reject: #B54834;
+  --reject-soft: #F5E6E2;
+  --border: #E4E1D8;
+}
+
+.app {
+  min-height: 100svh;
+  background: var(--paper);
+  color: var(--ink);
   font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  padding: 48px 32px;
+}
+
+.page {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.sync-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+  border: 1px solid var(--accent);
+  padding: 6px 14px;
+  border-radius: 4px;
+}
+
+.sync-link:hover {
+  background: var(--accent-soft);
+}
+
+.email-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.email-link:hover {
+  text-decoration: underline;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  margin: 24px 0 40px;
+}
+
+.stat {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.stat strong {
+  color: var(--ink);
+  font-size: 18px;
+  display: block;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+td.company {
+  font-weight: 600;
+  width: 220px;
+}
+
+.role-title {
+  display: block;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.stage-badge.rejected {
+  background: var(--reject-soft);
+  color: var(--reject);
+}
+
+.empty,
+.loading {
+  color: var(--muted);
+  padding: 40px 0;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .app {
+    padding: 32px 20px;
+  }
+
+  td.company {
+    width: auto;
+  }
 }

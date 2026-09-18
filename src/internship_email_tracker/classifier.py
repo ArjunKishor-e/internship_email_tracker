@@ -61,6 +61,12 @@ def classify_email(subject, body):
     ):
         return "Offered"
     elif (
+        "opened applications for" in body_lower
+        or "we thought you might be interested" in body_lower
+        or "not interested in this role" in body_lower
+    ):
+        return "Other"      
+    elif (
         "application" in subject_lower
         or "application" in body_lower
         or "applying" in subject_lower
