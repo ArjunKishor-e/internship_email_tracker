@@ -34,15 +34,30 @@ def get_email_body(payload):
 
     return ""
 
-def get_recent_emails(max_results=10, query="interview OR application OR assessment OR offer OR rejected"):
+def get_recent_emails(max_results=None, query="interview OR application OR assessment OR offer OR rejected"):
     creds = get_gmail_credentials()
     service = build("gmail", "v1", credentials=creds)
 
-    results = service.users().messages().list(
-        userId="me", maxResults=max_results, q=query
-    ).execute()
+    messages = []
+    page_token = None
 
-    messages = results.get("messages", [])
+    while True:
+        response = service.users().messages().list(
+            userId="me",
+            maxResults=100,
+            q=query,
+            pageToken=page_token,
+        ).execute()
+
+        messages.extend(response.get("messages", []))
+        page_token = response.get("nextPageToken")
+
+        if not page_token:
+            break
+        
+        if max_results and len(messages) >= max_results:
+            break
+
 
     fetched_emails = []
     for message in messages:

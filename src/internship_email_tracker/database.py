@@ -123,11 +123,21 @@ class EmailDatabase:
         session = self.Session()
         applications = session.query(Application).all()
         status_entries = session.query(StatusHistory).all()
-        session.close()
-
+        
         timelines = build_application_timelines(applications, status_entries)
-        timelines.sort(key=lambda t: t["company"].lower())
 
+        for application, timeline in zip(applications, timelines):
+            timeline["emails"] = [
+                {
+                    "subject": email.subject,
+                    "stage": email.stage,
+                    "date": email.date,
+                    "gmail_id": email.gmail_id,
+                }
+                for email in application.emails
+            ]
+        timelines.sort(key=lambda t: t["company"].lower())
+        session.close()
         return timelines
     
     def sync_gmail_to_database(self):

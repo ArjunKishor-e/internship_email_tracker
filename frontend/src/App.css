@@ -133,6 +133,44 @@ td.company {
   padding: 40px 0;
   text-align: center;
 }
+.expand-button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.expand-button:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.email-dropdown-row td {
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-dropdown {
+  width: 100%;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+.email-dropdown th {
+  font-size: 12px;
+  padding: 10px 12px 6px;
+  border-bottom: none;
+}
+
+.email-dropdown td {
+  padding: 6px 12px;
+  border-bottom: none;
+  font-size: 13px;
+}
 
 @media (max-width: 600px) {
   .app {
