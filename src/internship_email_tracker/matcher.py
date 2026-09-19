@@ -1,3 +1,5 @@
+AMBIGUOUS = object()
+
 def match_application(email, applications):
     for application in applications:
         if application.gmail_thread_id and application.gmail_thread_id == email["thread_id"]:
@@ -11,7 +13,9 @@ def match_application(email, applications):
         ]
         if len(domain_matches) == 1:
             return domain_matches[0]
-
+        elif len(domain_matches) > 1:
+            return AMBIGUOUS
+        
     return None
 
 

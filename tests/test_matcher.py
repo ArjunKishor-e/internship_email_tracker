@@ -1,4 +1,4 @@
-from internship_email_tracker.matcher import match_application
+from internship_email_tracker.matcher import match_application, AMBIGUOUS
 
 
 class FakeApplication:
@@ -34,7 +34,20 @@ def test_ambiguous_domain_match_returns_none():
 
     result = match_application(email, apps)
 
-    assert result is None
+    assert result == AMBIGUOUS
+
+def test_match_application_ambiguous_domain_returns_ambiguous():
+    fake_google_swe = FakeApplication(gmail_thread_id="thread_1", company="Google Software Engineering")
+    fake_google_ds = FakeApplication(gmail_thread_id="thread_2", company="Google Data Science")
+
+    new_email = {
+        "thread_id": "thread_3",
+        "sender_domain": "google.com",
+    }
+
+    result = match_application(new_email, [fake_google_swe, fake_google_ds])
+
+    assert result == AMBIGUOUS
 
 
 def test_no_match_returns_none():
