@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 from internship_email_tracker.email_stage import should_update_stage, STAGE_ORDER
-from internship_email_tracker.matcher import match_application
+from internship_email_tracker.matcher import match_application, AMBIGUOUS
 from internship_email_tracker.models import Base, EmailRecord, Application, StatusHistory
 from internship_email_tracker.email_model import Email
 from internship_email_tracker.classifier import classify_email
@@ -55,11 +55,12 @@ class EmailDatabase:
         try:
             existing_applications = session.query(Application).all()
             matched_application = match_application(email, existing_applications)
-            existing_applications = session.query(Application).all()
-            matched_application = match_application(email, existing_applications)
-
+            
+            if matched_application == AMBIGUOUS:
+                return False
+            
             if matched_application is None and stage == "Other":
-                return
+                return False
 
             is_new_application = matched_application is None
             if is_new_application:
@@ -67,6 +68,7 @@ class EmailDatabase:
                     company=email["company"],
                     gmail_thread_id=email["thread_id"],
                     current_stage=stage,
+                    role_title=email["subject"],
                 )
                 session.add(matched_application)
                 session.flush()
@@ -90,6 +92,7 @@ class EmailDatabase:
                     source_email_id=record.id,
                 ))
             session.commit()
+            return is_new_application
         except IntegrityError:
             session.rollback()
         finally:
@@ -141,12 +144,15 @@ class EmailDatabase:
         return timelines
     
     def sync_gmail_to_database(self):
-        emails = get_recent_emails(10)
+        emails = get_recent_emails()
 
+        new_count=0
         for email in emails:
-            self.insert_email_with_application(email)
+            if self.insert_email_with_application(email):
+                new_count +=1
 
         print("Gmail sync complete")
+        return {"emails_checked": len(emails), "new_applications": new_count}
 
     def close(self):
         self.engine.dispose()

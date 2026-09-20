@@ -14,31 +14,57 @@ function App() {
   const [applications, setApplications] = useState(null)
   const [analytics, setAnalytics] = useState(null)
   const [expandedThreadId, setExpandedThreadId] = useState(null)
+  const [syncing, setSyncing] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
+  function loadApplications() {
+    setLoadError(false)
     fetch('http://127.0.0.1:8000/api/applications')
       .then((response) => response.json())
       .then((data) => {
         setApplications(data.applications)
         setAnalytics(data.analytics)
       })
-  }, [])
+      .catch(() => setLoadError(true))
+  }
 
-  const loading = applications === null
+  useEffect(() => {
+    loadApplications()
+  }, [])
 
   function toggleExpanded(threadId) {
     setExpandedThreadId(expandedThreadId === threadId ? null : threadId)
   }
+
+  function handleSync() {
+    setSyncing(true)
+    setToast(null)
+    fetch('http://127.0.0.1:8000/sync')
+      .then((response) => response.json())
+      .then((result) => {
+        setToast(`Synced ${result.emails_checked} emails, ${result.new_applications} new`)
+        loadApplications()
+      })
+      .catch(() => setToast('Sync failed, try again'))
+      .finally(() => setSyncing(false))
+
+    setTimeout(() => setToast(null), 5000)
+  }
+
+  const loading = applications === null
 
   return (
     <div className="app">
       <div className="page">
         <header>
           <h1>Internship Tracker</h1>
-          <a className="sync-link" href="http://127.0.0.1:8000/sync">
-            Sync emails
-          </a>
+          <button className="sync-link" onClick={handleSync} disabled={syncing}>
+            {syncing ? 'Syncing…' : 'Sync emails'}
+          </button>
         </header>
+
+        {toast && <p className="toast">{toast}</p>}
 
         {analytics && (
           <div className="summary">
@@ -53,13 +79,15 @@ function App() {
           </div>
         )}
 
-        {loading && <p className="loading">Loading applications…</p>}
+        {loadError && <p className="empty">Couldn't reach the backend. Is it running?</p>}
 
-        {!loading && applications.length === 0 && (
+        {!loadError && loading && <p className="loading">Loading applications…</p>}
+
+        {!loadError && !loading && applications.length === 0 && (
           <p className="empty">No applications yet. Sync your emails to get started.</p>
         )}
 
-        {!loading && applications.length > 0 && (
+        {!loadError && !loading && applications.length > 0 && (
           <table>
             <thead>
               <tr>

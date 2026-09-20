@@ -28,9 +28,8 @@ def home():
      return {"status": "ok", "message": "API is running. Frontend is at http://localhost:5173"}
 
 @app.get("/sync")
-def sync(request: Request):
+def sync():
     db.sync_gmail_to_database()
-    return RedirectResponse(url="http://localhost:5173", status_code=303)
 
 @app.get("/api/applications")
 def api_applications():
