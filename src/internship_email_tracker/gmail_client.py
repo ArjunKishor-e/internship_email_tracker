@@ -86,6 +86,8 @@ def parse_message(msg):
             name, email_address = parseaddr(raw_sender)
             if name:
                 company = name
+            elif "@" in email_address:
+                company = email_address.split("@")[1].split(".")[0].capitalize()
             else:
                 company = email_address
             if "@" in email_address:

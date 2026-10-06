@@ -1,8 +1,30 @@
-def classify_email(subject, body):
+def classify_email(subject, body, sender_domain=None):
     subject_lower = subject.lower()
     body_lower = body.lower()
 
     if (
+        "unfortunately" in subject_lower
+        or "not progressed" in subject_lower
+        or "unsuccessful" in subject_lower
+        or "regret to inform" in subject_lower
+        or "unfortunately" in body_lower
+        or "not progressed" in body_lower
+        or "unsuccessful" in body_lower
+        or "regret to inform" in body_lower
+    ):
+        return "Rejected"
+    elif (
+        "job offer" in subject_lower
+        or "offer of employment" in subject_lower
+        or "pleased to offer" in subject_lower
+        or "delighted to offer" in subject_lower
+        or "job offer" in body_lower
+        or "offer of employment" in body_lower
+        or "pleased to offer" in body_lower
+        or "delighted to offer" in body_lower
+    ):
+        return "Offered"
+    elif (
         "your interview" in subject_lower
         or "interview invitation" in subject_lower
         or "interview scheduled" in subject_lower
@@ -39,33 +61,12 @@ def classify_email(subject, body):
     ):
         return "Assessment"
     elif (
-        "unfortunately" in subject_lower
-        or "not progressed" in subject_lower
-        or "unsuccessful" in subject_lower
-        or "regret to inform" in subject_lower
-        or "unfortunately" in body_lower
-        or "not progressed" in body_lower
-        or "unsuccessful" in body_lower
-        or "regret to inform" in body_lower
-    ):
-        return "Rejected"
-    elif (
-        "job offer" in subject_lower
-        or "offer of employment" in subject_lower
-        or "pleased to offer" in subject_lower
-        or "delighted to offer" in subject_lower
-        or "job offer" in body_lower
-        or "offer of employment" in body_lower
-        or "pleased to offer" in body_lower
-        or "delighted to offer" in body_lower
-    ):
-        return "Offered"
-    elif (
         "opened applications for" in body_lower
         or "we thought you might be interested" in body_lower
         or "not interested in this role" in body_lower
+        or sender_domain == "theforage.com"
     ):
-        return "Other"      
+        return "Other"
     elif (
         "application" in subject_lower
         or "application" in body_lower
@@ -81,3 +82,4 @@ def classify_email(subject, body):
         return "Applied"
     else:
         return "Other"
+ 

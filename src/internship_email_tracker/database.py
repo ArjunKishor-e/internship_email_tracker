@@ -49,7 +49,7 @@ class EmailDatabase:
         return [Email(r.company, r.subject, r.date, r.stage) for r in records]
 
     def insert_email_with_application(self, email):
-        stage = classify_email(email["subject"], email["body"])
+        stage = classify_email(email["subject"], email["body"], email.get("sender_domain"))
 
         session = self.Session()
         try:
@@ -113,14 +113,9 @@ class EmailDatabase:
 
             for stage in STAGE_ORDER:
                 summary["conversion_rates"][stage] = conversion_rate(total, status_entries, stage)
-
+            rejected_count = sum(1 for application in applications if application.current_stage == "Rejected")
+            summary["conversion_rates"]["Rejected"] = (rejected_count / total) if total else 0
             return summary        
-
-    def get_application_timelines(self):
-        session = self.Session()
-        applications = session.query(Application).all()
-        status_entries = session.query(StatusHistory).all()
-        session.close()
 
     def get_application_timelines(self):
         session = self.Session()

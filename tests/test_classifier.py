@@ -27,3 +27,11 @@ def test_keyword_found_only_in_body():
 def test_empty_subject_and_body_returns_other():
     result = classify_email("", "")
     assert result == "Other"
+
+def test_forage_domain_always_classified_as_other():
+    subject = "Forage / Arjun - Some Company Opportunity"
+    body = ""
+
+    result = classify_email(subject, body, sender_domain="theforage.com")
+
+    assert result == "Other"
