@@ -1,7 +1,11 @@
 from googleapiclient.discovery import build
 from internship_email_tracker.gmail_auth import get_gmail_credentials
+from internship_email_tracker.matcher import domain_root
 from email.utils import parseaddr
 import base64
+import re
+import html
+
 
 
 GENERIC_EMAIL_DOMAINS = {
@@ -20,17 +24,23 @@ def extract_domain_from_body(body):
     return None
 
 def get_email_body(payload):
-    if "parts" in payload:
-        for part in payload["parts"]:
-            if part["mimeType"] == "text/plain":
-                data = part["body"].get("data")
-                if data:
-                    return base64.urlsafe_b64decode(data).decode("utf-8")
+    parts_to_check = [payload]
+    html_body = ""
 
-    if payload.get("mimeType") == "text/plain":
-        data = payload["body"].get("data")
+    while parts_to_check:
+        part = parts_to_check.pop()
+        data = part.get("body", {}).get("data")
         if data:
-            return base64.urlsafe_b64decode(data).decode("utf-8")
+            text = base64.urlsafe_b64decode(data).decode("utf-8", errors="replace")
+            if part.get("mimeType") == "text/plain":
+                return text
+            if part.get("mimeType") == "text/html" and not html_body:
+                html_body = text
+        parts_to_check.extend(part.get("parts", []))
+
+    if html_body:
+        no_tags = re.sub(r"<[^>]+>", " ", html_body)
+        return re.sub(r"\s+", " ", html.unescape(no_tags)).strip()
 
     return ""
 
@@ -87,7 +97,7 @@ def parse_message(msg):
             if name:
                 company = name
             elif "@" in email_address:
-                company = email_address.split("@")[1].split(".")[0].capitalize()
+                company = domain_root(email_address.split("@")[1]).capitalize()
             else:
                 company = email_address
             if "@" in email_address:

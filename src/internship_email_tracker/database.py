@@ -142,7 +142,7 @@ class EmailDatabase:
         emails = get_recent_emails()
 
         new_count=0
-        for email in emails:
+        for email in reversed(emails):
             if self.insert_email_with_application(email):
                 new_count +=1
 

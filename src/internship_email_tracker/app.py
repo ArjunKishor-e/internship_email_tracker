@@ -1,7 +1,5 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI
 from internship_email_tracker.database import EmailDatabase
-from internship_email_tracker.classifier import classify_email
 from fastapi.middleware.cors import CORSMiddleware
 import threading
 import time
@@ -18,7 +16,10 @@ db.create_table()
 
 def gmail_sync_loop():
     while True:
-        db.sync_gmail_to_database()
+        try:
+            db.sync_gmail_to_database()
+        except Exception as e:
+            print (f"Gmail Sync failed: {e}")
         time.sleep(86400)
 
 threading.Thread(target=gmail_sync_loop, daemon=True).start()
@@ -29,7 +30,7 @@ def home():
 
 @app.get("/sync")
 def sync():
-    db.sync_gmail_to_database()
+    return db.sync_gmail_to_database()
 
 @app.get("/api/applications")
 def api_applications():

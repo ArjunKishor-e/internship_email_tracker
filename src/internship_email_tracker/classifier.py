@@ -1,6 +1,8 @@
 def classify_email(subject, body, sender_domain=None):
     subject_lower = subject.lower()
     body_lower = body.lower()
+    if sender_domain == "theforage.com":
+        return "Other"
 
     if (
         "unfortunately" in subject_lower
@@ -43,10 +45,12 @@ def classify_email(subject, body, sender_domain=None):
         or "assessment center" in subject_lower
         or "assessment day" in subject_lower
         or "final round" in subject_lower
-        or "assessment centre" in body_lower
-        or "assessment center" in body_lower
-        or "assessment day" in body_lower
-        or "final round" in body_lower
+        or "your assessment centre" in body_lower
+        or "invited to our assessment centre" in body_lower
+        or "invited to an assessment centre" in body_lower
+        or "invite you to our assessment centre" in body_lower
+        or "invite you to an assessment centre" in body_lower
+        or "assessment centre invitation" in body_lower
     ):
         return "AssessmentCentre"
     elif (
@@ -69,15 +73,14 @@ def classify_email(subject, body, sender_domain=None):
         return "Other"
     elif (
         "application" in subject_lower
-        or "application" in body_lower
         or "applying" in subject_lower
-        or "applying" in body_lower
         or "candidate" in subject_lower
-        or "candidate" in body_lower
         or "recruitment" in subject_lower
-        or "recruitment" in body_lower
         or "internship" in subject_lower
-        or "internship" in body_lower
+        or "received your application" in body_lower
+        or "thank you for applying" in body_lower
+        or "thanks for applying" in body_lower
+        or "application has been received" in body_lower
     ):
         return "Applied"
     else:
