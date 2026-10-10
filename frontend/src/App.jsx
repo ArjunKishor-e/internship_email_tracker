@@ -1,5 +1,6 @@
 import { useState, useEffect, Fragment } from 'react'
 import './App.css'
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
 const STAGE_LABELS = {
   Applied: 'Applied',
@@ -20,7 +21,7 @@ function App() {
 
   function loadApplications() {
     setLoadError(false)
-    fetch('http://127.0.0.1:8000/api/applications')
+    fetch(`${API_URL}/api/applications`)
       .then((response) => response.json())
       .then((data) => {
         setApplications(data.applications)
@@ -40,7 +41,7 @@ function App() {
   function handleSync() {
     setSyncing(true)
     setToast(null)
-    fetch('http://127.0.0.1:8000/sync')
+    fetch(`${API_URL}/sync`)
       .then((response) => response.json())
       .then((result) => {
         setToast(`Synced ${result.emails_checked} emails, ${result.new_applications} new`)

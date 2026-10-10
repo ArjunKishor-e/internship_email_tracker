@@ -3,15 +3,18 @@ from internship_email_tracker.database import EmailDatabase
 from fastapi.middleware.cors import CORSMiddleware
 import threading
 import time
+import os
 
 app = FastAPI()
+FRONTEND_ORIGINS = os.environ.get("FRONTEND_ORIGINS", "http://localhost:5173").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=FRONTEND_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-db = EmailDatabase()
+db = EmailDatabase(os.environ.get("DB_PATH", "tracker.db"))
 db.create_table()
 
 def gmail_sync_loop():
@@ -37,3 +40,7 @@ def api_applications():
     applications = db.get_application_timelines()
     analytics = db.get_analytics_summary()
     return {"applications": applications, "analytics": analytics}
+
+@app.post("/rebuild")
+def rebuild():
+    return db.rebuild_from_gmail()

@@ -138,16 +138,33 @@ class EmailDatabase:
         session.close()
         return timelines
     
-    def sync_gmail_to_database(self):
-        emails = get_recent_emails()
+    def clear_all(self):
+        session = self.Session()
+        session.query(StatusHistory).delete()
+        session.query(EmailRecord).delete()
+        session.query(Application).delete()
+        session.commit()
+        session.close()
 
-        new_count=0
+    def process_emails(self, emails):
+        new_count = 0
         for email in reversed(emails):
             if self.insert_email_with_application(email):
-                new_count +=1
-
-        print("Gmail sync complete")
+                new_count += 1
         return {"emails_checked": len(emails), "new_applications": new_count}
+
+    def sync_gmail_to_database(self):
+        emails = get_recent_emails()
+        result = self.process_emails(emails)
+        print("Gmail sync complete")
+        return result
+
+    def rebuild_from_gmail(self):
+        emails = get_recent_emails()
+        self.clear_all()
+        result = self.process_emails(emails)
+        print("Gmail rebuild complete")
+        return result
 
     def close(self):
         self.engine.dispose()
