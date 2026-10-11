@@ -183,7 +183,31 @@ td.company {
   font-size: 14px;
   margin-bottom: 16px;
 }
+th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
 
+th.sortable:hover {
+  color: var(--ink);
+}
+
+.search {
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.search:focus {
+  outline: none;
+  border-color: var(--accent);
+}
 @media (max-width: 600px) {
   .app {
     padding: 32px 20px;

@@ -11,6 +11,8 @@ const STAGE_LABELS = {
   Rejected: 'Rejected',
 }
 
+const STAGE_SORT_ORDER = ['Applied', 'Assessment', 'Interview', 'AssessmentCentre', 'Offered', 'Rejected']
+
 function App() {
   const [applications, setApplications] = useState(null)
   const [analytics, setAnalytics] = useState(null)
@@ -18,6 +20,9 @@ function App() {
   const [syncing, setSyncing] = useState(false)
   const [toast, setToast] = useState(null)
   const [loadError, setLoadError] = useState(false)
+  const [search, setSearch] = useState('')
+  const [sortKey, setSortKey] = useState('company')
+  const [sortDir, setSortDir] = useState('asc')
 
   function loadApplications() {
     setLoadError(false)
@@ -32,6 +37,19 @@ function App() {
 
   useEffect(() => {
     loadApplications()
+  }, [])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      fetch(`${API_URL}/api/applications`)
+        .then((response) => response.json())
+        .then((data) => {
+          setApplications(data.applications)
+          setAnalytics(data.analytics)
+        })
+        .catch(() => {})
+    }, 60000)
+    return () => clearInterval(timer)
   }, [])
 
   function toggleExpanded(threadId) {
@@ -54,6 +72,44 @@ function App() {
   }
 
   const loading = applications === null
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortKey(key)
+      setSortDir('asc')
+    }
+  }
+
+  function sortIndicator(key) {
+    if (sortKey !== key) return ''
+    return sortDir === 'asc' ? ' ▲' : ' ▼'
+  }
+
+  const query = search.trim().toLowerCase()
+  const visibleApplications = (applications || [])
+    .filter((app) => {
+      if (!query) return true
+      const text = [
+        app.company,
+        app.role_title,
+        STAGE_LABELS[app.current_stage] || app.current_stage,
+        ...app.emails.map((email) => email.subject),
+      ].join(' ').toLowerCase()
+      return text.includes(query)
+    })
+    .sort((a, b) => {
+      let result = 0
+      if (sortKey === 'company') {
+        result = a.company.toLowerCase().localeCompare(b.company.toLowerCase())
+      } else if (sortKey === 'stage') {
+        result = STAGE_SORT_ORDER.indexOf(a.current_stage) - STAGE_SORT_ORDER.indexOf(b.current_stage)
+      } else if (sortKey === 'emails') {
+        result = a.emails.length - b.emails.length
+      }
+      return sortDir === 'asc' ? result : -result
+    })
 
   return (
     <div className="app">
@@ -79,26 +135,34 @@ function App() {
             ))}
           </div>
         )}
-
+                {applications && applications.length > 0 && (
+          <input
+            className="search"
+            type="text"
+            placeholder="Search company, role, stage or email subject"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        )}
         {loadError && <p className="empty">Couldn't reach the backend. Is it running?</p>}
 
         {!loadError && loading && <p className="loading">Loading applications…</p>}
 
-        {!loadError && !loading && applications.length === 0 && (
-          <p className="empty">No applications yet. Sync your emails to get started.</p>
+        {!loadError && !loading && applications.length > 0 && visibleApplications.length === 0 && (
+          <p className="empty">No applications match your search</p>
         )}
 
         {!loadError && !loading && applications.length > 0 && (
           <table>
             <thead>
               <tr>
-                <th>Company</th>
-                <th>Stage</th>
-                <th>Emails</th>
+                <th className="sortable" onClick={() => handleSort('company')}>Company{sortIndicator('company')}</th>
+                <th className="sortable" onClick={() => handleSort('stage')}>Stage{sortIndicator('stage')}</th>
+                <th className="sortable" onClick={() => handleSort('emails')}>Emails{sortIndicator('emails')}</th>
               </tr>
             </thead>
             <tbody>
-              {applications.map((app) => (
+              {visibleApplications.map((app) => (
                 <Fragment key={app.gmail_thread_id}>
                   <tr>
                     <td className="company">
