@@ -44,7 +44,10 @@ def get_email_body(payload):
 
     return ""
 
-def get_recent_emails(max_results=None, query="interview OR application OR assessment OR offer OR rejected"):
+def get_recent_emails(max_results=None, query="interview OR application OR assessment OR offer OR rejected", skip_ids=()):
+    for message in messages:
+        if message["id"] in skip_ids:
+            continue
     creds = get_gmail_credentials()
     service = build("gmail", "v1", credentials=creds)
 

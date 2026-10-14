@@ -107,6 +107,29 @@ def test_existing_application_reused_on_thread_match():
 
     db.close()
 
+def test_resyncing_same_email_creates_nothing_new():
+    db = EmailDatabase(TEST_DB)
+    db.create_table()
+    email = {
+        "id": "msg1",
+        "thread_id": "thread1",
+        "company": "Acme",
+        "sender_domain": "acme.example",
+        "date": "Mon, 7 Sep 2026 09:12:00 +0000",
+        "subject": "Application received: Engineer",
+        "body": "Thank you for applying. We have received your application.",
+    }
+
+    first = db.process_emails([email])
+    second = db.process_emails([email])
+    timelines = db.get_application_timelines()
+    db.close()
+
+    assert first["new_applications"] == 1
+    assert second["new_applications"] == 0
+    assert len(timelines) == 1
+    assert len(timelines[0]["emails"]) == 1
+
 def test_email_linked_to_correct_application():
     db = EmailDatabase(TEST_DB)
     db.create_table()

@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, selectinload
 from sqlalchemy.exc import IntegrityError
 from internship_email_tracker.email_stage import should_update_stage, STAGE_ORDER
 from internship_email_tracker.matcher import match_application, AMBIGUOUS
@@ -49,52 +49,76 @@ class EmailDatabase:
         return [Email(r.company, r.subject, r.date, r.stage) for r in records]
 
     def insert_email_with_application(self, email):
-        stage = classify_email(email["subject"], email["body"], email.get("sender_domain"))
+        return self.process_emails([email])["new_applications"] == 1
 
+    def _store_email(self, session, applications, email):
+        stage = classify_email(email["subject"], email["body"], email.get("sender_domain"))
+        matched_application = match_application(email, applications)
+
+        if matched_application == AMBIGUOUS:
+            return False
+
+        if matched_application is None and stage == "Other":
+            return False
+
+        is_new_application = matched_application is None
+        if is_new_application:
+            matched_application = Application(
+                company=email["company"],
+                gmail_thread_id=email["thread_id"],
+                current_stage=stage,
+                role_title=email["subject"],
+            )
+            session.add(matched_application)
+            session.flush()
+            applications.append(matched_application)
+
+        record = EmailRecord(
+            gmail_id=email["id"],
+            application_id=matched_application.id,
+            company=email["company"],
+            subject=email["subject"],
+            date=email["date"],
+            stage=stage,
+        )
+        session.add(record)
+        session.flush()
+
+        if is_new_application or should_update_stage(matched_application.current_stage, stage):
+            matched_application.current_stage = stage
+            session.add(StatusHistory(
+                application_id=matched_application.id,
+                stage=stage,
+                source_email_id=record.id,
+            ))
+
+        return is_new_application
+
+    def _known_gmail_ids(self):
+        session = self.Session()
+        ids = {row[0] for row in session.query(EmailRecord.gmail_id).all()}
+        session.close()
+        return ids
+
+    def process_emails(self, emails):
         session = self.Session()
         try:
-            existing_applications = session.query(Application).all()
-            matched_application = match_application(email, existing_applications)
-            
-            if matched_application == AMBIGUOUS:
-                return False
-            
-            if matched_application is None and stage == "Other":
-                return False
+            applications = session.query(Application).all()
+            known_ids = {row[0] for row in session.query(EmailRecord.gmail_id).all()}
 
-            is_new_application = matched_application is None
-            if is_new_application:
-                matched_application = Application(
-                    company=email["company"],
-                    gmail_thread_id=email["thread_id"],
-                    current_stage=stage,
-                    role_title=email["subject"],
-                )
-                session.add(matched_application)
-                session.flush()
+            new_count = 0
+            for email in reversed(emails):
+                if email["id"] in known_ids:
+                    continue
+                if self._store_email(session, applications, email):
+                    new_count += 1
+                known_ids.add(email["id"])
 
-            record = EmailRecord(
-                gmail_id=email["id"],
-                application_id=matched_application.id,
-                company=email["company"],
-                subject=email["subject"],
-                date=email["date"],
-                stage=stage,
-            )
-            session.add(record)
-            session.flush()
-
-            if is_new_application or should_update_stage(matched_application.current_stage, stage):
-                matched_application.current_stage = stage
-                session.add(StatusHistory(
-                    application_id=matched_application.id,
-                    stage=stage,
-                    source_email_id=record.id,
-                ))
             session.commit()
-            return is_new_application
-        except IntegrityError:
+            return {"emails_checked": len(emails), "new_applications": new_count}
+        except Exception:
             session.rollback()
+            raise
         finally:
             session.close()
 
@@ -119,7 +143,7 @@ class EmailDatabase:
 
     def get_application_timelines(self):
         session = self.Session()
-        applications = session.query(Application).all()
+        applications = session.query(Application).options(selectinload(Application.emails)).all()
         status_entries = session.query(StatusHistory).all()
         
         timelines = build_application_timelines(applications, status_entries)
@@ -146,15 +170,8 @@ class EmailDatabase:
         session.commit()
         session.close()
 
-    def process_emails(self, emails):
-        new_count = 0
-        for email in reversed(emails):
-            if self.insert_email_with_application(email):
-                new_count += 1
-        return {"emails_checked": len(emails), "new_applications": new_count}
-
     def sync_gmail_to_database(self):
-        emails = get_recent_emails()
+        emails = get_recent_emails(skip_ids=self._known_gmail_ids())
         result = self.process_emails(emails)
         print("Gmail sync complete")
         return result
