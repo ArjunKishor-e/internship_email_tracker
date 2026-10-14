@@ -208,6 +208,13 @@ th.sortable:hover {
   outline: none;
   border-color: var(--accent);
 }
+.demo-badge {
+  color: var(--muted);
+  font-size: 14px;
+  border: 1px dashed var(--border);
+  padding: 6px 14px;
+  border-radius: 4px;
+}
 @media (max-width: 600px) {
   .app {
     padding: 32px 20px;

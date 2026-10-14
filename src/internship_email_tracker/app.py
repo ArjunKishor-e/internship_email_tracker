@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from internship_email_tracker.demo_data import seed_demo_data
 from internship_email_tracker.database import EmailDatabase
 from fastapi.middleware.cors import CORSMiddleware
 import threading
@@ -14,7 +15,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-db = EmailDatabase(os.environ.get("DB_PATH", "tracker.db"))
+DEMO_MODE = os.environ.get("DEMO_MODE", "").lower() in ("1", "true", "yes")
+DB_PATH = os.environ.get("DB_PATH", "demo.db" if DEMO_MODE else "tracker.db")
+db = EmailDatabase(DB_PATH)
 db.create_table()
 
 def gmail_sync_loop():
@@ -25,7 +28,10 @@ def gmail_sync_loop():
             print (f"Gmail Sync failed: {e}")
         time.sleep(86400)
 
-threading.Thread(target=gmail_sync_loop, daemon=True).start()
+if DEMO_MODE:
+    seed_demo_data(db)
+else:
+    threading.Thread(target=gmail_sync_loop, daemon=True).start()
 
 @app.get("/")
 def home():
@@ -33,14 +39,18 @@ def home():
 
 @app.get("/sync")
 def sync():
+    if DEMO_MODE:
+        raise HTTPException(status_code=403, detail="Disabled in demo mode")
     return db.sync_gmail_to_database()
 
 @app.get("/api/applications")
 def api_applications():
     applications = db.get_application_timelines()
     analytics = db.get_analytics_summary()
-    return {"applications": applications, "analytics": analytics}
+    return {"applications": applications, "analytics": analytics, "demo_mode": DEMO_MODE}
 
 @app.post("/rebuild")
 def rebuild():
+    if DEMO_MODE:
+        raise HTTPException(status_code=403, detail="Disabled in demo mode")
     return db.rebuild_from_gmail()

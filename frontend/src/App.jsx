@@ -23,6 +23,7 @@ function App() {
   const [search, setSearch] = useState('')
   const [sortKey, setSortKey] = useState('company')
   const [sortDir, setSortDir] = useState('asc')
+  const [demoMode, setDemoMode] = useState(false)
 
   function loadApplications() {
     setLoadError(false)
@@ -31,6 +32,7 @@ function App() {
       .then((data) => {
         setApplications(data.applications)
         setAnalytics(data.analytics)
+        setDemoMode(data.demo_mode === true)
       })
       .catch(() => setLoadError(true))
   }
@@ -116,12 +118,19 @@ function App() {
       <div className="page">
         <header>
           <h1>Internship Tracker</h1>
-          <button className="sync-link" onClick={handleSync} disabled={syncing}>
-            {syncing ? 'Syncing…' : 'Sync emails'}
-          </button>
+          {demoMode ? (
+            <span className="demo-badge">Demo data</span>
+          ) : (
+            <button className="sync-link" onClick={handleSync} disabled={syncing}>
+              {syncing ? 'Syncing…' : 'Sync emails'}
+            </button>
+          )}
         </header>
 
         {toast && <p className="toast">{toast}</p>}
+        {demoMode && (
+          <p className="toast">This is a demo with made-up data. The real version connects to your Gmail.</p>
+        )}
 
         {analytics && (
           <div className="summary">

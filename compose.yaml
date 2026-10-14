@@ -1,5 +1,7 @@
 services:
   server:
+    environment:
+      - DEMO_MODE=${DEMO_MODE:-false}
     build:
       context: .
     ports:
